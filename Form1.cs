@@ -29,6 +29,7 @@ namespace Jesture
       Pen _pen = new Pen(Color.Black);
 
       SystemBox _box = new SystemBox(new Point(), new Size(200, 200));
+      List<Drawable> _drawingElements = new List<Drawable>();
 
       public Form1()
       {
@@ -50,7 +51,16 @@ namespace Jesture
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeFinishTime.Ticks) / 10000;
          if (elapsedMilliSeconds > 1000)
          {
-            //This is where the gesture will be recognised.
+            if (_currentGesture.Count == 1)
+            {
+               var gesture = _currentGesture[0];
+               if (gesture.IsBoxShaped())
+               {
+                  _drawingElements.Add(
+                     new SystemBox(gesture.Location(), gesture.Size()));
+               }
+            }
+
             _currentGesture.Clear();
             this.Invalidate();
          }
@@ -80,7 +90,10 @@ namespace Jesture
          if (_currentStroke != null)
             _currentStroke.Draw(_gfx, _pen);
 
-         //         _box.Draw(_gfx, _pen);
+         foreach (var element in _drawingElements)
+         {
+            element.Draw(_gfx, _pen);
+         }
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)
@@ -104,7 +117,14 @@ namespace Jesture
       {
          if (_drawing)
          {
+            _segmentEnd = e.Location;
+            Point[] location = { _segmentStart, _segmentEnd };
+            var transform = _panTransform.Clone();
+            transform.Invert();
+            transform.TransformPoints(location);
+
             _currentGesture.Add(_currentStroke);
+
             _currentStroke = null;
             _drawing = false;
             _strokeFinishTime = DateTime.Now;
@@ -112,13 +132,15 @@ namespace Jesture
          }
 
          _panning = false;
-         _segmentEnd = e.Location;
       }
 
       private void paper_MouseMove(object sender, MouseEventArgs e)
       {
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeStartTime.Ticks) / 10000;
-         if (_drawing && elapsedMilliSeconds > 50)
+         if (_drawing &&
+             elapsedMilliSeconds > 50 &&
+             (Math.Abs(_segmentStart.X - e.Location.X) > 3 ||
+              Math.Abs(_segmentStart.Y - e.Location.Y) > 3))
          {
             _segmentEnd = e.Location;
 
