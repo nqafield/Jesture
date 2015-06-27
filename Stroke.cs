@@ -84,6 +84,26 @@ namespace Jesture
                 rightSize;
       }
 
+      internal bool IsStrikeOut()
+      {
+         int matchCount = 0;
+
+         foreach (var segment in Segments)
+         {
+            if (segment.IsAxisAligned)
+            {
+               matchCount++;
+            }
+         }
+
+         var rightSize = UseCase.Size.HasValue ?
+            Size().Height > UseCase.Size.Value.Height * 3 &&
+            Size().Width > UseCase.Size.Value.Width * 3 :
+            true;
+
+         return matchCount < Segments.Count * 0.4 && rightSize;
+      }
+
       public Point Location()
       {
          List<Point> points = new List<Point>();

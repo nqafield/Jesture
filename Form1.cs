@@ -66,6 +66,14 @@ namespace Jesture
                      new UseCase(gesture.Location(), gesture.Size()));
                }
             }
+            else if (_currentGesture.Count == 2)
+            {
+               if (_currentGesture[0].IsStrikeOut() &&
+                   _currentGesture[0].IsStrikeOut())
+               {
+                  _drawingElements.Clear();
+               }
+            }
 
             _currentGesture.Clear();
             this.Invalidate();
