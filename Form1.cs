@@ -33,8 +33,16 @@ namespace Jesture
          _g = _paper.CreateGraphics();
          _g.Transform = _panTransform;
 
-
          //Make some drawable types: System, Actor, Line
+         //Just draw the hand-drawn thing first and then once recognised
+         //swap it for the real thing.
+
+         //The hand-drawn thing is just a collection of strokes, each of which
+         //is a collection of (line) segments.
+
+         //They have interesting properties like size, shape and postion
+         //of the collection of the strokes, and of the individual strokes,
+         //and the direction of each segment
 
          foreach (var line in _lines)
          {
