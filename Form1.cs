@@ -8,17 +8,24 @@ namespace Jesture
 {
    public partial class Form1 : Form
    {
-      Graphics _g;
+      Graphics _gfx;
 
-      bool _drawing = false;
-      Point? _startPoint = null;
-      Point _endPoint = new Point();
-      Pen _pen = new Pen(Color.Black);
-      List<Tuple<Point, Point>> _lines = new List<Tuple<Point, Point>>();
       bool _panning = false;
+      Point _lastPanLocation = new Point();
       Matrix _panTransform = new Matrix();
 
+      bool _drawing = false;
       DateTime _strokeStartTime = DateTime.Now;
+      Stroke _currentStroke = new Stroke();
+      List<Stroke> _currentStrokes = new List<Stroke>();
+
+      Point _segmentStart = new Point();
+      Point _segmentEnd = new Point();
+
+      Pen _pen = new Pen(Color.Black);
+      List<Tuple<Point, Point>> _lines = new List<Tuple<Point, Point>>();
+
+
 
       SystemBox _box = new SystemBox(new Point(), new Size(200, 200));
 
@@ -37,8 +44,8 @@ namespace Jesture
 
       private void paper_Paint(object sender, PaintEventArgs e)
       {
-         _g = e.Graphics;
-         _g.Transform = _panTransform;
+         _gfx = e.Graphics;
+         _gfx.Transform = _panTransform;
 
          //Make some drawable types: System, Actor, Line
          //Just draw the hand-drawn thing first and then once recognised
@@ -51,12 +58,14 @@ namespace Jesture
          //of the collection of the strokes, and of the individual strokes,
          //and the direction of each segment
 
-         foreach (var line in _lines)
+         foreach (var stroke in _currentStrokes)
          {
-            _g.DrawLine(_pen, line.Item1, line.Item2);
+            stroke.Draw(_gfx, _pen);
          }
 
-         _box.Draw(_g, _pen);
+         _currentStroke.Draw(_gfx, _pen);
+
+//         _box.Draw(_gfx, _pen);
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)
@@ -65,64 +74,52 @@ namespace Jesture
          {
             _drawing = true;
             _strokeStartTime = DateTime.Now;
+            _currentStroke = new Stroke();
+            _segmentStart = e.Location;
          }
          else if (e.Button == MouseButtons.Right)
          {
             _panning = true;
+            _lastPanLocation = e.Location;
          }
-         _startPoint = e.Location;
       }
 
       private void paper_MouseUp(object sender, MouseEventArgs e)
       {
          _panning = false;
-
          _drawing = false;
-         _endPoint = e.Location;
+         _segmentEnd = e.Location;
 
-         //if (_startPoint.HasValue)
-         //{
-         //   Point[] location = { _startPoint.Value, _endPoint };
-         //   var transform = _panTransform.Clone();
-         //   transform.Invert();
-         //   transform.TransformPoints(location);
-
-         //   _lines.Add(new Tuple<Point, Point>(location[0], location[1]));
-         //   _startPoint = null;
-         //}
-
-         //this.Invalidate();
+         _currentStrokes.Add(_currentStroke);
       }
 
       private void paper_MouseMove(object sender, MouseEventArgs e)
       {
-         _endPoint = e.Location;
-
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeStartTime.Ticks) / 10000;
          if (_drawing && elapsedMilliSeconds > 50)
          {
-            if (_startPoint.HasValue)
-            {
-               Point[] location = { _startPoint.Value, _endPoint };
-               var transform = _panTransform.Clone();
-               transform.Invert();
-               transform.TransformPoints(location);
+            _segmentEnd = e.Location;
 
-               _lines.Add(new Tuple<Point, Point>(location[0], location[1]));
-               _startPoint = e.Location;
-            } 
+            Point[] location = { _segmentStart, _segmentEnd };
+            var transform = _panTransform.Clone();
+            transform.Invert();
+            transform.TransformPoints(location);
+
+            _currentStroke.Add(new Segment(location[0], location[1]));
+
+            _segmentStart = e.Location;
             _strokeStartTime = DateTime.Now;
-            this.Invalidate();
          }
          else if (_panning)
          {
             _panTransform.Translate(
-               e.Location.X - _startPoint.Value.X,
-               e.Location.Y - _startPoint.Value.Y);
+               e.Location.X - _lastPanLocation.X,
+               e.Location.Y - _lastPanLocation.Y);
 
-            _startPoint = e.Location;
-            this.Invalidate();
+            _lastPanLocation = e.Location;
          }
+
+         this.Invalidate();
       }
 
       private void _paper_Resize(object sender, EventArgs e)

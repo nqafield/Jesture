@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 interface Drawable
 {
-   void Draw(Graphics g, Pen p);
+   void Draw(Graphics gfx, Pen pen);
 }
 
 namespace Jesture
@@ -22,9 +22,9 @@ namespace Jesture
          _box.Size = size;
       }
 
-      public void Draw(Graphics g, Pen pen)
+      public void Draw(Graphics gfx, Pen pen)
       {
-         g.DrawRectangle(pen, _box);
+         gfx.DrawRectangle(pen, _box);
       }
    }
 }
