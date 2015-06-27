@@ -20,17 +20,24 @@ namespace Jesture
 
       DateTime _strokeStartTime = DateTime.Now;
 
+      SystemBox _box = new SystemBox(new Point(), new Size(200, 200));
+
 
       public Form1()
       {
          InitializeComponent();
 
-         _g = _paper.CreateGraphics();
+         this.DoubleBuffered = true;
+         this.SetStyle(
+            ControlStyles.OptimizedDoubleBuffer |
+            ControlStyles.UserPaint |
+            ControlStyles.AllPaintingInWmPaint,
+            true);
       }
 
       private void paper_Paint(object sender, PaintEventArgs e)
       {
-         _g = _paper.CreateGraphics();
+         _g = e.Graphics;
          _g.Transform = _panTransform;
 
          //Make some drawable types: System, Actor, Line
@@ -48,6 +55,8 @@ namespace Jesture
          {
             _g.DrawLine(_pen, line.Item1, line.Item2);
          }
+
+         _box.Draw(_g, _pen);
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)
@@ -82,7 +91,7 @@ namespace Jesture
          //   _startPoint = null;
          //}
 
-         //_paper.Invalidate();
+         //this.Invalidate();
       }
 
       private void paper_MouseMove(object sender, MouseEventArgs e)
@@ -92,24 +101,18 @@ namespace Jesture
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeStartTime.Ticks) / 10000;
          if (_drawing && elapsedMilliSeconds > 50)
          {
-            Point[] location = { e.Location };
-            var transform = _panTransform.Clone();
-            transform.Invert();
-            transform.TransformPoints(location);
-            _g.DrawEllipse(_pen, new Rectangle(location[0], new Size(5, 5)));
-            
             if (_startPoint.HasValue)
             {
-               Point[] location2 = { _startPoint.Value, _endPoint };
-               var transform2 = _panTransform.Clone();
-               transform2.Invert();
-               transform2.TransformPoints(location2);
+               Point[] location = { _startPoint.Value, _endPoint };
+               var transform = _panTransform.Clone();
+               transform.Invert();
+               transform.TransformPoints(location);
 
-               _lines.Add(new Tuple<Point, Point>(location2[0], location2[1]));
+               _lines.Add(new Tuple<Point, Point>(location[0], location[1]));
                _startPoint = e.Location;
             } 
             _strokeStartTime = DateTime.Now;
-            _paper.Invalidate();
+            this.Invalidate();
          }
          else if (_panning)
          {
@@ -118,7 +121,7 @@ namespace Jesture
                e.Location.Y - _startPoint.Value.Y);
 
             _startPoint = e.Location;
-            _paper.Invalidate();
+            this.Invalidate();
          }
       }
 
