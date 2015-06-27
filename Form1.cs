@@ -54,10 +54,16 @@ namespace Jesture
             if (_currentGesture.Count == 1)
             {
                var gesture = _currentGesture[0];
-               if (gesture.IsBoxShaped())
+               if (gesture.IsSquarey())
                {
                   _drawingElements.Add(
                      new SystemBox(gesture.Location(), gesture.Size()));
+               }
+
+               if (gesture.IsEllipsey())
+               {
+                  _drawingElements.Add(
+                     new UseCase(gesture.Location(), gesture.Size()));
                }
             }
 

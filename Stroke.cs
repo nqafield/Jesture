@@ -45,7 +45,7 @@ namespace Jesture
          }
       }
 
-      internal bool IsBoxShaped()
+      internal bool IsSquarey()
       {
          int matchCount = 0;
 
@@ -57,6 +57,31 @@ namespace Jesture
             }
          }
          return matchCount > Segments.Count * 0.8;
+      }
+
+      internal bool IsEllipsey()
+      {
+         int matchCount = 0;
+
+         foreach (var segment in Segments)
+         {
+            if (segment.IsAxisAligned)
+            {
+               matchCount++;
+            }
+         }
+
+         var rightSize =
+            UseCase.Size.HasValue ?
+            Size().Height < UseCase.Size.Value.Height * 2 &&
+            Size().Height > UseCase.Size.Value.Height * 0.5 &&
+            Size().Width < UseCase.Size.Value.Width * 2 &&
+            Size().Width > UseCase.Size.Value.Width * 0.5 :
+            true;
+
+         return matchCount < Segments.Count * 0.7 &&
+                Size().Width > Size().Height * 1.2 &&
+                rightSize;
       }
 
       public Point Location()

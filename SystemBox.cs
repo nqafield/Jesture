@@ -12,6 +12,25 @@ interface Drawable
 
 namespace Jesture
 {
+   class UseCase : Drawable
+   {
+      public static Size? Size;
+ 
+      Rectangle _ellipse = new Rectangle();
+
+      public UseCase(Point location, Size size)
+      {
+         _ellipse.Location = location;
+         if (!Size.HasValue) Size = new Size((int)(size.Height * 1.4), size.Height);
+         _ellipse.Size = Size.Value;
+      }
+
+      public void Draw(Graphics gfx, Pen pen)
+      {
+         gfx.DrawEllipse(pen, _ellipse);
+      }
+   }
+
    class SystemBox : Drawable
    {
       Rectangle _box = new Rectangle();
