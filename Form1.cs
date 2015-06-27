@@ -15,20 +15,20 @@ namespace Jesture
       Matrix _panTransform = new Matrix();
 
       bool _drawing = false;
+
       DateTime _strokeStartTime = DateTime.Now;
-      Stroke _currentStroke = new Stroke();
-      List<Stroke> _currentStrokes = new List<Stroke>();
+      DateTime _strokeFinishTime = DateTime.Now;
+      Stroke _currentStroke = null;
+
+      List<Stroke> _currentGesture = new List<Stroke>();
+      Timer _gestureTimer = new Timer();
 
       Point _segmentStart = new Point();
       Point _segmentEnd = new Point();
 
       Pen _pen = new Pen(Color.Black);
-      List<Tuple<Point, Point>> _lines = new List<Tuple<Point, Point>>();
-
-
 
       SystemBox _box = new SystemBox(new Point(), new Size(200, 200));
-
 
       public Form1()
       {
@@ -40,6 +40,20 @@ namespace Jesture
             ControlStyles.UserPaint |
             ControlStyles.AllPaintingInWmPaint,
             true);
+
+         _gestureTimer.Tick += _gestureTimer_Tick;
+         _gestureTimer.Interval = 200;
+      }
+
+      void _gestureTimer_Tick(object sender, EventArgs e)
+      {
+         var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeFinishTime.Ticks) / 10000;
+         if (elapsedMilliSeconds > 1000)
+         {
+            //This is where the gesture will be recognised.
+            _currentGesture.Clear();
+            this.Invalidate();
+         }
       }
 
       private void paper_Paint(object sender, PaintEventArgs e)
@@ -58,14 +72,15 @@ namespace Jesture
          //of the collection of the strokes, and of the individual strokes,
          //and the direction of each segment
 
-         foreach (var stroke in _currentStrokes)
+         foreach (var stroke in _currentGesture)
          {
             stroke.Draw(_gfx, _pen);
          }
 
-         _currentStroke.Draw(_gfx, _pen);
+         if (_currentStroke != null)
+            _currentStroke.Draw(_gfx, _pen);
 
-//         _box.Draw(_gfx, _pen);
+         //         _box.Draw(_gfx, _pen);
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)
@@ -76,6 +91,7 @@ namespace Jesture
             _strokeStartTime = DateTime.Now;
             _currentStroke = new Stroke();
             _segmentStart = e.Location;
+            _gestureTimer.Stop();
          }
          else if (e.Button == MouseButtons.Right)
          {
@@ -86,11 +102,17 @@ namespace Jesture
 
       private void paper_MouseUp(object sender, MouseEventArgs e)
       {
-         _panning = false;
-         _drawing = false;
-         _segmentEnd = e.Location;
+         if (_drawing)
+         {
+            _currentGesture.Add(_currentStroke);
+            _currentStroke = null;
+            _drawing = false;
+            _strokeFinishTime = DateTime.Now;
+            _gestureTimer.Start();
+         }
 
-         _currentStrokes.Add(_currentStroke);
+         _panning = false;
+         _segmentEnd = e.Location;
       }
 
       private void paper_MouseMove(object sender, MouseEventArgs e)
