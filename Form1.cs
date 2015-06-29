@@ -30,7 +30,8 @@ namespace Jesture
       Point _segmentStart = new Point();
       Point _segmentEnd = new Point();
 
-      Pen _pen = new Pen(Color.Black);
+      Pen _pen = new Pen(Color.Black, 2);
+      Pen _lightPen = new Pen(Color.LightSlateGray);
 
       SystemBox _box = new SystemBox(new Point(), new Size(200, 200));
       List<Drawable> _drawingElements = new List<Drawable>();
@@ -57,7 +58,7 @@ namespace Jesture
       void _gestureTimer_Tick(object sender, EventArgs e)
       {
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeFinishTime.Ticks) / 10000;
-         if (elapsedMilliSeconds > 1000)
+         if (elapsedMilliSeconds > 600)
          {
             if (_currentGesture.Count == 1)
             {
@@ -80,11 +81,33 @@ namespace Jesture
             }
             else if (_currentGesture.Count == 2)
             {
+               var gesture1 = _currentGesture[0];
+               var gesture2 = _currentGesture[1];
+
                if (_currentGesture[0].IsStrikeOut() &&
-                   _currentGesture[0].IsStrikeOut())
+                   _currentGesture[1].IsStrikeOut())
                {
                   _drawingElements.Clear();
                   UseCase.Size = null;
+                  Actor.Size = null;
+               }
+               else if (_currentGesture[0].IsCircley() &&
+                   _currentGesture[1].IsLiney())
+               {
+                  _drawingElements.Add(
+                     new Actor(gesture1.Location(), gesture1.Size()));
+               }
+            }
+            else if (_currentGesture.Count > 2)
+            {
+               var gesture1 = _currentGesture[0];
+               var gesture2 = _currentGesture[1];
+
+               if (_currentGesture[0].IsCircley() &&
+                   _currentGesture[1].IsLiney())
+               {
+                  _drawingElements.Add(
+                     new Actor(gesture1.Location(), gesture1.Size()));
                }
             }
 
@@ -120,11 +143,11 @@ namespace Jesture
 
          foreach (var stroke in _currentGesture)
          {
-            stroke.Draw(_gfx, _pen);
+            stroke.Draw(_gfx, _lightPen);
          }
 
          if (_currentStroke != null)
-            _currentStroke.Draw(_gfx, _pen);
+            _currentStroke.Draw(_gfx, _lightPen);
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)

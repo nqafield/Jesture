@@ -84,6 +84,30 @@ namespace Jesture
                 rightSize;
       }
 
+      internal bool IsCircley()
+      {
+         int matchCount = 0;
+
+         foreach (var segment in Segments)
+         {
+            if (segment.IsAxisAligned)
+            {
+               matchCount++;
+            }
+         }
+
+         var rightSize =
+            Actor.Size.HasValue ?
+            Size().Height < Actor.Size.Value.Height * 2 &&
+            Size().Height > Actor.Size.Value.Height * 0.5 &&
+            Size().Width < Actor.Size.Value.Width * 2 &&
+            Size().Width > Actor.Size.Value.Width * 0.5 :
+            true;
+
+         return matchCount < Segments.Count * 0.7 &&
+                rightSize;
+      }
+
       internal bool IsStrikeOut()
       {
          int matchCount = 0;
@@ -106,8 +130,8 @@ namespace Jesture
 
       internal bool IsLiney()
       {
-         if (Math.Abs(Segments[0].Start.X - Segments[Segments.Count - 1].End.X) > 50 ||
-             Math.Abs(Segments[0].Start.Y - Segments[Segments.Count - 1].End.Y) > 50)
+         if (Math.Abs(Segments[0].Start.X - Segments[Segments.Count - 1].End.X) > (Size().Width / 4) ||
+             Math.Abs(Segments[0].Start.Y - Segments[Segments.Count - 1].End.Y) > (Size().Height / 4))
          {
             return true;
          }
