@@ -58,7 +58,7 @@ namespace Jesture
       void _gestureTimer_Tick(object sender, EventArgs e)
       {
          var elapsedMilliSeconds = (DateTime.Now.Ticks - _strokeFinishTime.Ticks) / 10000;
-         if (elapsedMilliSeconds > 600)
+         if (elapsedMilliSeconds > 700)
          {
             if (_currentGesture.Count == 1)
             {
