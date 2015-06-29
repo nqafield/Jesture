@@ -11,8 +11,12 @@ namespace Jesture
       Graphics _gfx;
 
       bool _panning = false;
+      bool _zooming = false;
+      float _scale = 1;
       Point _lastPanLocation = new Point();
+      Point _lastZoomLocation = new Point();
       Matrix _panTransform = new Matrix();
+      Matrix _zoomTransform = new Matrix();
 
       bool _drawing = false;
 
@@ -44,6 +48,10 @@ namespace Jesture
 
          _gestureTimer.Tick += _gestureTimer_Tick;
          _gestureTimer.Interval = 200;
+
+         _gfx = this.CreateGraphics();
+
+         _gfx.SmoothingMode = SmoothingMode.HighQuality;
       }
 
       void _gestureTimer_Tick(object sender, EventArgs e)
@@ -72,6 +80,7 @@ namespace Jesture
                    _currentGesture[0].IsStrikeOut())
                {
                   _drawingElements.Clear();
+                  UseCase.Size = null;
                }
             }
 
@@ -83,7 +92,10 @@ namespace Jesture
       private void paper_Paint(object sender, PaintEventArgs e)
       {
          _gfx = e.Graphics;
-         _gfx.Transform = _panTransform;
+         _gfx.Transform = _zoomTransform;
+         _gfx.MultiplyTransform(_panTransform);
+
+         _gfx.SmoothingMode = SmoothingMode.HighQuality;
 
          //Make some drawable types: System, Actor, Line
          //Just draw the hand-drawn thing first and then once recognised
@@ -96,6 +108,12 @@ namespace Jesture
          //of the collection of the strokes, and of the individual strokes,
          //and the direction of each segment
 
+
+         foreach (var element in _drawingElements)
+         {
+            element.Draw(_gfx, _pen);
+         }
+
          foreach (var stroke in _currentGesture)
          {
             stroke.Draw(_gfx, _pen);
@@ -103,11 +121,6 @@ namespace Jesture
 
          if (_currentStroke != null)
             _currentStroke.Draw(_gfx, _pen);
-
-         foreach (var element in _drawingElements)
-         {
-            element.Draw(_gfx, _pen);
-         }
       }
 
       private void paper_MouseDown(object sender, MouseEventArgs e)
@@ -124,6 +137,11 @@ namespace Jesture
          {
             _panning = true;
             _lastPanLocation = e.Location;
+         }
+         else if (e.Button == MouseButtons.Middle)
+         {
+            _zooming = true;
+            _lastZoomLocation = e.Location;
          }
       }
 
@@ -146,6 +164,7 @@ namespace Jesture
          }
 
          _panning = false;
+         _zooming = false;
       }
 
       private void paper_MouseMove(object sender, MouseEventArgs e)
@@ -175,6 +194,14 @@ namespace Jesture
                e.Location.Y - _lastPanLocation.Y);
 
             _lastPanLocation = e.Location;
+         }
+         else if (_zooming)
+         {
+            _scale -= (float)(e.Location.Y - _lastZoomLocation.Y)/1000;
+
+            _zoomTransform.Scale(_scale, _scale);
+
+            _lastZoomLocation = e.Location;
          }
 
          this.Invalidate();
