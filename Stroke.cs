@@ -104,6 +104,17 @@ namespace Jesture
          return matchCount < Segments.Count * 0.4 && rightSize;
       }
 
+      internal bool IsLiney()
+      {
+         if (Math.Abs(Segments[0].Start.X - Segments[Segments.Count - 1].End.X) > 50 ||
+             Math.Abs(Segments[0].Start.Y - Segments[Segments.Count - 1].End.Y) > 50)
+         {
+            return true;
+         }
+
+         return false;
+      }
+
       public Point Location()
       {
          List<Point> points = new List<Point>();

@@ -62,13 +62,17 @@ namespace Jesture
             if (_currentGesture.Count == 1)
             {
                var gesture = _currentGesture[0];
-               if (gesture.IsSquarey())
+               if (gesture.IsLiney())
+               {
+                  _drawingElements.Add(
+                     new Line(gesture.Segments[0].Start, gesture.Segments[gesture.Segments.Count - 1].End));
+               }
+               else if (gesture.IsSquarey())
                {
                   _drawingElements.Add(
                      new SystemBox(gesture.Location(), gesture.Size()));
                }
-
-               if (gesture.IsEllipsey())
+               else if (gesture.IsEllipsey())
                {
                   _drawingElements.Add(
                      new UseCase(gesture.Location(), gesture.Size()));

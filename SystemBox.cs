@@ -12,6 +12,23 @@ interface Drawable
 
 namespace Jesture
 {
+   class Line : Drawable
+   {
+      Point startPoint;
+      Point endPoint;
+
+      public Line(Point start, Point end)
+      {
+         startPoint = start;
+         endPoint = end;
+      }
+
+      public void Draw(Graphics gfx, Pen pen)
+      {
+         gfx.DrawLine(pen, startPoint, endPoint);
+      }
+   }
+
    class UseCase : Drawable
    {
       public static Size? Size;
